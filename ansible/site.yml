@@ -1,0 +1,6 @@
+---
+- name: Install monitorctl
+  hosts: monitorctl
+  gather_facts: true
+  roles:
+    - monitorctl

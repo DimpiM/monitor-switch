@@ -1,0 +1,74 @@
+---
+# Everything here can be overridden in group_vars/all.yml.
+
+monitorctl_user: monitorctl
+monitorctl_group: monitorctl
+monitorctl_install_dir: /opt/monitorctl
+monitorctl_config_dir: /etc/monitorctl
+
+# Bind address. The service has no authentication, so this is an explicit
+# decision rather than a default of 0.0.0.0. Set to 0.0.0.0 to reach it from
+# other machines on a trusted LAN.
+monitorctl_bind_host: 0.0.0.0
+monitorctl_bind_port: 8765
+
+# Which DRM connector carries the monitor. The glob covers card0/card1 moving
+# between kernel versions. The bus number itself is always resolved from sysfs.
+monitorctl_connector: /sys/class/drm/card*-HDMI-A-1
+
+# Force a specific profile by name instead of matching on the EDID.
+monitorctl_profile: ~
+
+# Per-installation feature overrides, applied on top of the profile.
+# See docs/profiles.md.
+monitorctl_feature_overrides: {}
+
+# Which inputs the /api/toggle endpoint and the UI's Toggle button cycle
+# through. Empty means every input the profile knows.
+monitorctl_toggle_between: []
+
+# The input source changes behind our back (OSD, auto source switching), so it
+# is polled often. Everything else only moves when we move it. A read costs
+# roughly 0.9 s, so a full sweep is not something to do on a tight loop.
+monitorctl_fast_poll_interval: 15
+monitorctl_slow_poll_interval: 300
+
+# Surface VCP codes this build has no metadata for. Off by default: each costs
+# a slow read per poll and most are not worth reading.
+monitorctl_include_unknown_features: false
+
+monitorctl_log_level: INFO
+
+# --- Video output -----------------------------------------------------------
+# The whole design rests on this machine always producing a video signal: a
+# monitor that displays an input with no signal wedges its DDC engine.
+#
+# Monitors often serve a minimal EDID on an inactive input, which leaves the
+# framebuffer at something like 1024x768. Forcing the mode fixes that. The
+# trailing D is the modern equivalent of hdmi_force_hotplug=1.
+#
+# This edits the kernel command line and needs a reboot, so it is opt-in.
+monitorctl_force_video: false
+monitorctl_video_mode: "HDMI-A-1:1920x1080@60D"
+monitorctl_cmdline_path: /boot/firmware/cmdline.txt
+# Reboot automatically when the command line changed. Off by default — you may
+# not want a playbook rebooting a machine out from under you.
+monitorctl_reboot_on_video_change: false
+
+# --- MQTT / Home Assistant --------------------------------------------------
+monitorctl_mqtt_enabled: false
+monitorctl_mqtt_host: ""
+monitorctl_mqtt_port: 1883
+monitorctl_mqtt_username: ""
+monitorctl_mqtt_password: ""
+monitorctl_mqtt_tls: false
+monitorctl_mqtt_discovery_prefix: homeassistant
+monitorctl_mqtt_node_id: monitorctl
+monitorctl_mqtt_device_name: Monitor
+
+monitorctl_packages:
+  - ddcutil
+  - i2c-tools
+  - python3-flask
+  - python3-waitress
+  - python3-yaml

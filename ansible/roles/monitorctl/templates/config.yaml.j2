@@ -1,0 +1,35 @@
+# Managed by Ansible — local edits will be overwritten.
+# Credentials are NOT here; see {{ monitorctl_config_dir }}/env.
+
+host: {{ monitorctl_bind_host }}
+port: {{ monitorctl_bind_port }}
+
+connector: "{{ monitorctl_connector }}"
+{% if monitorctl_profile %}
+profile: {{ monitorctl_profile }}
+{% endif %}
+profile_dir: {{ monitorctl_install_dir }}/profiles
+
+toggle_between: {{ monitorctl_toggle_between | to_json }}
+
+fast_poll_interval: {{ monitorctl_fast_poll_interval }}
+slow_poll_interval: {{ monitorctl_slow_poll_interval }}
+include_unknown_features: {{ monitorctl_include_unknown_features | lower }}
+
+log_level: {{ monitorctl_log_level }}
+
+{% if monitorctl_feature_overrides %}
+feature_overrides:
+{{ monitorctl_feature_overrides | to_nice_yaml(indent=2) | indent(2, true) }}
+{% endif %}
+
+mqtt:
+  enabled: {{ monitorctl_mqtt_enabled | lower }}
+{% if monitorctl_mqtt_enabled %}
+  host: {{ monitorctl_mqtt_host }}
+  port: {{ monitorctl_mqtt_port }}
+  tls: {{ monitorctl_mqtt_tls | lower }}
+  discovery_prefix: {{ monitorctl_mqtt_discovery_prefix }}
+  node_id: {{ monitorctl_mqtt_node_id }}
+  device_name: "{{ monitorctl_mqtt_device_name }}"
+{% endif %}

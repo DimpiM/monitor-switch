@@ -10,12 +10,12 @@ StartLimitIntervalSec=0
 
 [Service]
 Type=simple
-User=monitorctl
-Group=monitorctl
+User={{ monitorctl_user }}
+Group={{ monitorctl_group }}
 # Membership in i2c is what makes running unprivileged possible at all.
 SupplementaryGroups=i2c
-WorkingDirectory=/opt/monitorctl
-Environment=MONITORCTL_CONFIG=/etc/monitorctl/config.yaml
+WorkingDirectory={{ monitorctl_install_dir }}
+Environment=MONITORCTL_CONFIG={{ monitorctl_config_dir }}/config.yaml
 Environment=PYTHONUNBUFFERED=1
 # ddcutil keeps a dynamic-sleep-adjustment cache under $XDG_CACHE_HOME (falling
 # back to $HOME/.cache). ProtectSystem=strict makes the install directory
@@ -26,8 +26,8 @@ CacheDirectory=monitorctl
 Environment=XDG_CACHE_HOME=/var/cache/monitorctl
 # Secrets live here, not in the world-readable config file. "-" so the service
 # still starts when MQTT is not configured.
-EnvironmentFile=-/etc/monitorctl/env
-ExecStart=/usr/bin/python3 /opt/monitorctl/run.py
+EnvironmentFile=-{{ monitorctl_config_dir }}/env
+ExecStart=/usr/bin/python3 {{ monitorctl_install_dir }}/run.py
 
 Restart=always
 RestartSec=5

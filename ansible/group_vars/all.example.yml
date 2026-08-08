@@ -1,0 +1,31 @@
+---
+# Copy to all.yml and edit. all.yml is gitignored because it holds credentials.
+
+# No authentication exists. 0.0.0.0 is right for a trusted LAN and wrong for
+# anything else.
+monitorctl_bind_host: 0.0.0.0
+monitorctl_bind_port: 8765
+
+# Which inputs the Toggle button and POST /api/toggle cycle through. These are
+# option ids from the monitor profile — run `monitorctl features` to list them.
+monitorctl_toggle_between: [dp1, dp2]
+
+# Force the profile instead of matching on the EDID. Usually unnecessary.
+# monitorctl_profile: samsung-lc49g95t
+
+# --- Video output -----------------------------------------------------------
+# Strongly recommended. The design depends on this machine always producing a
+# signal, and monitors often serve a minimal EDID on an inactive input which
+# leaves the framebuffer at 1024x768. Edits the kernel command line, so it
+# needs a reboot.
+monitorctl_force_video: true
+monitorctl_video_mode: "HDMI-A-1:1920x1080@60D"
+monitorctl_reboot_on_video_change: false
+
+# --- Home Assistant ---------------------------------------------------------
+# monitorctl_mqtt_enabled: true
+# monitorctl_mqtt_host: homeassistant.local
+# monitorctl_mqtt_port: 1883
+# monitorctl_mqtt_username: monitorswitch
+# monitorctl_mqtt_password: "put it in a vault, not here"
+# monitorctl_mqtt_device_name: "Desk monitor"

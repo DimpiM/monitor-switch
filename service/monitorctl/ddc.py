@@ -190,6 +190,12 @@ class DDC:
             str(multiplier),
             "--maxtries",
             ",".join(str(n) for n in self.settings.maxtries),
+            # ddcutil writes informational lines straight to the system log on
+            # every invocation. At a poll every 15 s on a machine that runs on
+            # an SD card, that is a steady write for no benefit — and stderr is
+            # captured here anyway, so nothing diagnostic is lost.
+            "--syslog",
+            "NEVER",
             *args,
         ]
         with _BUS_LOCK:

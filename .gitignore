@@ -34,3 +34,4 @@ frontend/dist/
 
 # Playwright MCP scratch output
 .playwright-mcp/
+ansible/group_vars/all.yaml

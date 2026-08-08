@@ -1,0 +1,28 @@
+---
+- name: Reload systemd
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+  become: true
+
+- name: Restart monitorctl
+  ansible.builtin.systemd_service:
+    name: monitorctl
+    state: restarted
+  become: true
+
+- name: Reboot for the video mode
+  ansible.builtin.reboot:
+    reboot_timeout: 300
+    # A Pi Zero 2 W takes roughly 40 s to come back.
+    post_reboot_delay: 10
+  become: true
+  when: monitorctl_reboot_on_video_change
+
+- name: Point out that a reboot is needed
+  ansible.builtin.debug:
+    msg: >-
+      The kernel command line changed. Reboot the machine for the forced video
+      mode to take effect, or set monitorctl_reboot_on_video_change to have this
+      playbook do it.
+  when: not monitorctl_reboot_on_video_change
+  listen: Reboot for the video mode
