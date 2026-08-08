@@ -64,6 +64,8 @@ displaying an input with no signal wedges its DDC engine) disappears structurall
        (any browser)         (hotkeys, scripts)          (MQTT)
 ```
 
+![The monitor-switch web UI: input source tiles with the active source highlighted, sliders for brightness, contrast and volume, and a row of read-only monitor readings](docs/images/ui.png)
+
 ## What it does
 
 - **Switch inputs** from a hotkey, a browser, your phone, or a Home Assistant

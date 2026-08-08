@@ -1,0 +1,161 @@
+/*
+ * A dark control-room look: deep field, cyan signal, magenta for the machine
+ * you are currently sitting at.
+ *
+ * Motion here has a job. A switch takes about two seconds of real work on a
+ * slow serial bus, and the animations exist to make that wait legible — a tile
+ * that is working looks like it is working. Everything decorative is slow,
+ * large and low-contrast so it never competes with the controls.
+ */
+
+:root {
+  --bg: #05070d;
+  --bg-raise: #0a0e1a;
+  --surface: rgba(18, 26, 44, 0.62);
+  --surface-strong: rgba(24, 34, 58, 0.86);
+  --border: rgba(120, 160, 220, 0.16);
+  --border-strong: rgba(140, 200, 255, 0.38);
+
+  --text: #e8f0ff;
+  --text-dim: #8fa3c4;
+  --text-faint: #56688a;
+
+  --accent: #22d3ee;
+  --accent-soft: rgba(34, 211, 238, 0.16);
+  --accent-glow: rgba(34, 211, 238, 0.5);
+  --active: #f472b6;
+  --active-glow: rgba(244, 114, 182, 0.45);
+  --warn: #fbbf24;
+  --danger: #fb7185;
+  --ok: #34d399;
+
+  --radius: 14px;
+  --radius-lg: 20px;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI',
+    Roboto, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* The drifting field behind everything. Fixed and pointer-transparent so it
+   costs nothing in layout and never intercepts a tap. */
+body::before,
+body::after {
+  content: '';
+  position: fixed;
+  inset: -30%;
+  pointer-events: none;
+  z-index: -1;
+}
+
+body::before {
+  background:
+    radial-gradient(50% 40% at 20% 15%, rgba(34, 211, 238, 0.16), transparent 70%),
+    radial-gradient(45% 45% at 82% 25%, rgba(129, 90, 245, 0.16), transparent 70%),
+    radial-gradient(55% 50% at 55% 95%, rgba(244, 114, 182, 0.11), transparent 70%);
+  filter: blur(20px);
+  animation: drift 44s var(--ease-in-out) infinite alternate;
+}
+
+/* A faint engineering grid. Perspective would be prettier but costs a composite
+   layer the Pi's clients do not all have to spare. */
+body::after {
+  background-image:
+    linear-gradient(rgba(120, 170, 230, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(120, 170, 230, 0.045) 1px, transparent 1px);
+  background-size: 46px 46px;
+  mask-image: radial-gradient(circle at 50% 30%, #000 0%, transparent 78%);
+  -webkit-mask-image: radial-gradient(circle at 50% 30%, #000 0%, transparent 78%);
+}
+
+@keyframes drift {
+  0% {
+    transform: translate3d(-3%, -2%, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(2%, 3%, 0) scale(1.08);
+  }
+  100% {
+    transform: translate3d(4%, -3%, 0) scale(1.03);
+  }
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+.mono {
+  font-family: ui-monospace, 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.eyebrow {
+  font-size: 0.688rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+/* Honour the user's setting. Everything below is either decorative or a
+   nicety; none of it carries information that the layout does not. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

@@ -67,6 +67,8 @@ strukturell.
       (jeder Browser)      (Tastenkürzel, Skripte)        (MQTT)
 ```
 
+![Die Weboberfläche von monitor-switch: Kacheln für die Eingangsquellen mit hervorgehobener aktiver Quelle, Regler für Helligkeit, Kontrast und Lautstärke, darunter eine Zeile mit Nur-Lese-Werten des Monitors](docs/images/ui.png)
+
 ## Was es kann
 
 - **Eingang umschalten** per Tastenkürzel, Browser, Handy oder Home-Assistant-Dashboard

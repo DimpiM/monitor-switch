@@ -1,0 +1,4 @@
+# The frontend build is committed so installs need no Node toolchain.
+# It is generated output: keep it out of diffs and language stats.
+service/monitorctl/web/** linguist-generated=true -diff
+frontend/package-lock.json linguist-generated=true -diff
