@@ -15,11 +15,12 @@ alles, was der Monitor kann, über HTTP, eine Weboberfläche und Home Assistant 
 
 ---
 
-> **Status: im Bau.**
-> Die Hardware-Seite ist vollständig vermessen und dokumentiert — siehe
-> [`docs/hardware-findings.de.md`](docs/hardware-findings.de.md). Dienst,
-> Weboberfläche und Ansible-Rolle entstehen gerade. Dieser Hinweis verschwindet mit
-> dem ersten Release.
+> **Status: benutzbar, noch nicht veröffentlicht.**
+> Dienst, Weboberfläche und Ansible-Rolle laufen und sind auf echter Hardware
+> verifiziert — ein Samsung Odyssey G9 an einem Raspberry Pi Zero 2 W. Die
+> MQTT-Brücke ist geschrieben, aber noch an keinem Broker erprobt, und außer dem
+> Referenzgerät wurde kein Monitor getestet. [`docs/status.md`](docs/status.md)
+> sagt genau, was belegt ist und was nicht.
 
 ## Das Problem
 
@@ -101,7 +102,7 @@ cp group_vars/all.example.yml group_vars/all.yml
 ansible-playbook -i inventory.ini site.yml
 ```
 
-Danach `http://<dein-pi>/` im Browser öffnen.
+Danach `http://<dein-pi>:8765/` im Browser öffnen.
 
 Das Playbook installiert die Pakete, richtet I²C ein, erzwingt einen stabilen
 Videomodus, rollt den Dienst aus — und bricht ab, wenn die Health-Prüfung nicht
@@ -189,6 +190,7 @@ Nicht ins Internet stellen.
 | [Monitor-Profile](docs/profiles.md) | Profil schreiben und beisteuern |
 | [Home Assistant](docs/home-assistant.md) | MQTT-Discovery einrichten |
 | [Fehlersuche](docs/troubleshooting.md) | Wenn DDC sich danebenbenimmt |
+| [Projektstand](docs/status.md) | Was auf Hardware belegt ist — und was nicht |
 
 ## Dank
 

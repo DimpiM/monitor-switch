@@ -15,10 +15,12 @@ and exposes every control the monitor offers over HTTP, a web UI, and Home Assis
 
 ---
 
-> **Status: under construction.**
-> The hardware side is fully validated and documented — see
-> [`docs/hardware-findings.md`](docs/hardware-findings.md). The service, web UI and
-> Ansible role are being built now. This notice goes away when the first release lands.
+> **Status: usable, not yet released.**
+> The service, web UI and Ansible role work and are verified on real hardware — a
+> Samsung Odyssey G9 driven by a Raspberry Pi Zero 2 W. The MQTT bridge is written
+> but has not been connected to a broker yet, and no monitor other than the
+> reference one has been tried. [`docs/status.md`](docs/status.md) is explicit
+> about what is proven and what is not.
 
 ## The problem
 
@@ -97,7 +99,7 @@ cp group_vars/all.example.yml group_vars/all.yml
 ansible-playbook -i inventory.ini site.yml
 ```
 
-Then open `http://<your-pi>/` in a browser.
+Then open `http://<your-pi>:8765/` in a browser.
 
 The playbook installs the packages, configures I²C, forces a stable video mode,
 deploys the service, and refuses to finish if the health check does not answer.
@@ -181,6 +183,7 @@ configurable address — **not** `0.0.0.0` by default. Do not expose it to the i
 | [Monitor profiles](docs/profiles.md) | Writing and contributing a profile |
 | [Home Assistant](docs/home-assistant.md) | MQTT discovery setup |
 | [Troubleshooting](docs/troubleshooting.md) | When DDC misbehaves |
+| [Project status](docs/status.md) | What is verified on hardware, and what is not |
 
 ## Credits
 
