@@ -1,0 +1,46 @@
+[Unit]
+Description=monitorctl — DDC/CI monitor control
+Documentation=https://github.com/DimpiM/monitor-switch
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=monitorctl
+Group=monitorctl
+# Membership in i2c is what makes running unprivileged possible at all.
+SupplementaryGroups=i2c
+WorkingDirectory=/opt/monitorctl
+Environment=MONITORCTL_CONFIG=/etc/monitorctl/config.yaml
+Environment=PYTHONUNBUFFERED=1
+# Secrets live here, not in the world-readable config file. "-" so the service
+# still starts when MQTT is not configured.
+EnvironmentFile=-/etc/monitorctl/env
+ExecStart=/usr/bin/python3 /opt/monitorctl/run.py
+
+Restart=always
+RestartSec=5
+# The monitor may simply be switched off at boot. Keep retrying rather than
+# giving up after the default burst limit.
+StartLimitIntervalSec=0
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictNamespaces=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+# ddcutil needs the I²C character device; sysfs is read for the connector state.
+DeviceAllow=char-i2c rw
+ReadWritePaths=
+
+[Install]
+WantedBy=multi-user.target

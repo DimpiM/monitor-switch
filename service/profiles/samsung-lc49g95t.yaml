@@ -1,0 +1,109 @@
+# Samsung Odyssey G9 (LC49G95T)
+#
+# Reference profile. Every value below was measured on real hardware; the
+# protocol is in docs/hardware-findings.md.
+#
+# This monitor is the reason profiles exist. Its capabilities string declares
+# input source values 01 (VGA-1) and 03 (DVI-1) — neither is real. The values
+# that actually work are not mentioned at all, and what you write is not what
+# you read back.
+
+name: Samsung Odyssey G9 (LC49G95T)
+
+match:
+  mfg: SAM
+  model: LC49G95T
+
+ddc:
+  # 4 is enough for getvcp/setvcp. Reading the capabilities string needs 8 on a
+  # Raspberry Pi Zero 2 W — 4 and 6 both abort with "Maximum DDC retries
+  # exceeded".
+  sleep_multiplier: 4
+  capabilities_sleep_multiplier: 8
+  maxtries: [15, 15, 15]
+
+features:
+  # The critical override. Write MCCS standard values, read vendor-specific
+  # ones back.
+  #
+  #   target        write   read
+  #   DisplayPort 1  0x0f    0x03
+  #   DisplayPort 2  0x10    0x04
+  #   HDMI           0x11    0x01
+  #
+  # ddcutil renders the read value 0x04 as "DVI-2" per the MCCS standard. That
+  # is a display artefact — there is no DVI input on this monitor.
+  input_source:
+    vcp: 0x60
+    type: select
+    label: Input source
+    fast_poll: true
+    options:
+      - { id: dp1,  label: DisplayPort 1, write: 0x0f, read: 0x03 }
+      - { id: dp2,  label: DisplayPort 2, write: 0x10, read: 0x04 }
+      # Switching here is only safe while this machine is actually painting
+      # pixels. If the monitor ends up displaying an input with no signal, its
+      # DDC engine wedges and only the OSD or a link reset brings it back.
+      - { id: hdmi, label: HDMI, write: 0x11, read: 0x01, guard: local_video }
+
+  color_preset:
+    vcp: 0x14
+    type: select
+    label: Colour temperature
+    options:
+      - { id: srgb,    label: sRGB,     write: 0x01 }
+      - { id: k5000,   label: 5000 K,   write: 0x04 }
+      - { id: k6500,   label: 6500 K,   write: 0x05 }
+      - { id: k7500,   label: 7500 K,   write: 0x06 }
+      - { id: k8200,   label: 8200 K,   write: 0x07 }
+      - { id: k9300,   label: 9300 K,   write: 0x08 }
+      - { id: k11500,  label: 11500 K,  write: 0x0a }
+      - { id: user1,   label: User 1,   write: 0x0b }
+
+  display_mode:
+    vcp: 0xDC
+    type: select
+    label: Picture mode
+    options:
+      - { id: standard,     label: Standard,     write: 0x00 }
+      - { id: productivity, label: Productivity, write: 0x01 }
+      - { id: mixed,        label: Mixed,        write: 0x02 }
+      - { id: movie,        label: Movie,        write: 0x03 }
+      - { id: custom,       label: User defined, write: 0x04 }
+
+  mute:
+    vcp: 0x8D
+    type: select
+    label: Mute
+    options:
+      - { id: muted,   label: Muted,   write: 0x01 }
+      - { id: unmuted, label: Unmuted, write: 0x02 }
+
+  # Read-only on purpose. Whether this monitor answers DDC while asleep has not
+  # been tested, and if it does not, nothing could wake it again over DDC.
+  power:
+    vcp: 0xD6
+    type: select
+    label: Power state
+    category: sensor
+    readonly: true
+    options:
+      - { id: "on",      label: "On",      write: 0x01 }
+      - { id: standby,   label: Standby,   write: 0x02 }
+      - { id: "off",     label: "Off",     write: 0x04 }
+
+  brightness: { vcp: 0x10, label: Brightness }
+  contrast:   { vcp: 0x12, label: Contrast }
+  volume:     { vcp: 0x62, label: Volume }
+
+  gain_red:    { vcp: 0x16, label: Red gain }
+  gain_green:  { vcp: 0x18, label: Green gain }
+  gain_blue:   { vcp: 0x1A, label: Blue gain }
+  black_red:   { vcp: 0x6C, label: Red black level }
+  black_green: { vcp: 0x6E, label: Green black level }
+  black_blue:  { vcp: 0x70, label: Blue black level }
+
+  usage_hours: { vcp: 0xC0, label: Usage hours, category: sensor, readonly: true, unit: h }
+
+  # Declared by the monitor but not useful to expose.
+  osd_language: false

@@ -1,0 +1,25 @@
+[project]
+name = "monitorctl"
+version = "0.1.0"
+description = "DDC/CI monitor control for an always-on Raspberry Pi"
+readme = "../README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+# Deliberately no install_requires: on the target these come from apt
+# (python3-flask, python3-waitress, python3-yaml, python3-paho-mqtt) so that
+# system updates keep them current and no virtualenv is needed on a Pi Zero.
+
+[project.scripts]
+monitorctl = "monitorctl.cli:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 90
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM"]

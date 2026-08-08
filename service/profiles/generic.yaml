@@ -1,0 +1,50 @@
+# Generic fallback.
+#
+# The empty match block means this profile is never selected automatically —
+# monitors with no matching profile run on auto-detection alone, which is the
+# right default for well-behaved hardware.
+#
+# Select it explicitly with `profile: generic` in the configuration if you want
+# the input source labels below without writing a profile of your own. The
+# values are the MCCS standard ones; whether your monitor honours them is
+# exactly the thing that has to be verified per device.
+#
+# To find out what your monitor really does, run:
+#
+#     monitorctl probe --feature input_source
+#
+# It walks the candidate values, reports what reads back, and reverts
+# automatically if you do not confirm — so a wrong guess cannot strand you on a
+# blank screen.
+
+name: generic
+
+match: {}
+
+features:
+  # MCCS standard input source values. Many monitors implement a subset, and
+  # some — see samsung-lc49g95t.yaml — implement something else entirely.
+  input_source:
+    vcp: 0x60
+    type: select
+    label: Input source
+    fast_poll: true
+    options:
+      - { id: vga1,   label: VGA 1,          write: 0x01 }
+      - { id: vga2,   label: VGA 2,          write: 0x02 }
+      - { id: dvi1,   label: DVI 1,          write: 0x03 }
+      - { id: dvi2,   label: DVI 2,          write: 0x04 }
+      - { id: comp1,  label: Composite 1,    write: 0x05 }
+      - { id: comp2,  label: Composite 2,    write: 0x06 }
+      - { id: svideo1, label: S-Video 1,     write: 0x07 }
+      - { id: svideo2, label: S-Video 2,     write: 0x08 }
+      - { id: tuner1, label: Tuner 1,        write: 0x09 }
+      - { id: tuner2, label: Tuner 2,        write: 0x0a }
+      - { id: tuner3, label: Tuner 3,        write: 0x0b }
+      - { id: cmp1,   label: Component 1,    write: 0x0c }
+      - { id: cmp2,   label: Component 2,    write: 0x0d }
+      - { id: cmp3,   label: Component 3,    write: 0x0e }
+      - { id: dp1,    label: DisplayPort 1,  write: 0x0f }
+      - { id: dp2,    label: DisplayPort 2,  write: 0x10 }
+      - { id: hdmi1,  label: HDMI 1,         write: 0x11 }
+      - { id: hdmi2,  label: HDMI 2,         write: 0x12 }
