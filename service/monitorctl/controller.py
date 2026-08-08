@@ -82,7 +82,11 @@ class MonitorController:
         self.ddc = ddc
         self.features = features
         self.toggle_between = toggle_between or []
-        self._on_change = on_change
+        # Several things want to know about changes — the SSE stream and the
+        # MQTT bridge, at least — so this is a list rather than one slot.
+        self._listeners: list[Callable[[dict[str, FeatureState]], None]] = []
+        if on_change:
+            self._listeners.append(on_change)
         self._state: dict[str, FeatureState] = {}
         self._lock = threading.RLock()
         # Number of user-initiated operations in flight. The background sweep
@@ -117,10 +121,15 @@ class MonitorController:
             state = self._state.get(name)
         return state is not None and state.raw is not None
 
+    def add_listener(self, callback: Callable[[dict[str, FeatureState]], None]) -> None:
+        self._listeners.append(callback)
+
     def _publish(self, changed: dict[str, FeatureState]) -> None:
-        if changed and self._on_change:
+        if not changed:
+            return
+        for listener in list(self._listeners):
             try:
-                self._on_change(changed)
+                listener(changed)
             except Exception:  # a broken subscriber must not break control
                 log.exception("state change subscriber raised")
 
