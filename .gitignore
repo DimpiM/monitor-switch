@@ -1,0 +1,33 @@
+# Local, machine-specific configuration — never commit
+ansible/inventory.ini
+ansible/group_vars/all.yml
+ansible/*.retry
+LOCAL-SETUP.md
+.env
+*.local.yaml
+*.local.yml
+
+# Secrets
+*.pem
+*.key
+!*.example.key
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+
+# Frontend build tooling (the built output IS committed, see frontend/README)
+frontend/node_modules/
+frontend/.vite/
+frontend/dist/
+
+# Editors / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
