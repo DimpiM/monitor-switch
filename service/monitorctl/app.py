@@ -112,7 +112,12 @@ class Poller(threading.Thread):
         last_slow = time.monotonic()
         while not self._stop.wait(config.fast_poll_interval):
             now = time.monotonic()
-            full = now - last_slow >= config.slow_poll_interval
+            # An input change invalidates everything else, because monitors keep
+            # settings per input. That request jumps the slow-cycle queue.
+            requested = controller.full_refresh_wanted
+            full = requested or now - last_slow >= config.slow_poll_interval
+            if requested:
+                controller.clear_full_refresh()
             try:
                 controller.refresh(fast_only=not full)
             except Exception:

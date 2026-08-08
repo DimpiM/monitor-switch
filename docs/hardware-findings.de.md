@@ -104,6 +104,15 @@ verschluckt, eine Verify-und-Retry-Schleife über `getvcp 60` war Pflicht.
 > Write saß beim ersten Versuch. Die Retry-Schleife bleibt trotzdem im Code, sie
 > kostet im Erfolgsfall nichts.
 
+**Einstellungen gelten pro Eingang.** Die Helligkeit las `11`, während der Monitor
+HDMI anzeigte, und `60` bei DisplayPort 2. Der Monitor führt für jeden Eingang einen
+eigenen Satz Werte — **ein Eingangswechsel entwertet damit jeden anderen
+zwischengespeicherten Wert**. `monitorctl` stößt deshalb bei jedem Wechsel der
+Eingangsquelle eine vollständige Neulesung an.
+
+Wissenswert, wenn man eigene Werkzeuge baut: eine Helligkeit, die nach dem Umschalten
+falsch aussieht, ist kein Lesefehler, sondern schlicht eine andere Einstellung.
+
 **Nie auf einen Eingang ohne Signal schalten.** Der gefährlichste Punkt, und der,
 der die Architektur geprägt hat. Sobald der Monitor einen signallosen Eingang
 *anzeigt*, hängt sich sein DDC-Motor auf: `0x37` bestätigt auf I²C-Ebene weiter, aber

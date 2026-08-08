@@ -16,6 +16,7 @@ from __future__ import annotations
 import logging
 import threading
 import time
+from contextlib import contextmanager
 from dataclasses import asdict, dataclass
 from typing import Any, Callable
 
@@ -84,6 +85,26 @@ class MonitorController:
         self._on_change = on_change
         self._state: dict[str, FeatureState] = {}
         self._lock = threading.RLock()
+        # Number of user-initiated operations in flight. The background sweep
+        # steps aside while this is non-zero: a full sweep is ~20 s of bus time
+        # on a Pi Zero, and nobody should wait through it to change an input.
+        self._user_ops = 0
+        self._full_refresh_wanted = threading.Event()
+
+    @contextmanager
+    def _user_operation(self):
+        with self._lock:
+            self._user_ops += 1
+        try:
+            yield
+        finally:
+            with self._lock:
+                self._user_ops -= 1
+
+    @property
+    def _user_busy(self) -> bool:
+        with self._lock:
+            return self._user_ops > 0
 
     # ------------------------------------------------------------------ state
 
@@ -123,6 +144,12 @@ class MonitorController:
         changed: dict[str, FeatureState] = {}
 
         for feature in targets:
+            # Yield the bus the moment somebody actually wants something. The
+            # remaining features keep until the next cycle; none of them are
+            # urgent, which is why they are on the slow tier in the first place.
+            if self._user_busy:
+                log.debug("refresh yielding to a user request")
+                break
             new = self._read(feature)
             with self._lock:
                 old = self._state.get(feature.name)
@@ -191,7 +218,8 @@ class MonitorController:
 
     def get(self, name: str) -> FeatureState:
         feature = self._feature(name)
-        new = self._read(feature)
+        with self._user_operation():
+            new = self._read(feature)
         with self._lock:
             old = self._state.get(name)
             self._state[name] = new
@@ -202,6 +230,10 @@ class MonitorController:
     # ----------------------------------------------------------------- writes
 
     def set(self, name: str, value: Any) -> FeatureState:
+        with self._user_operation():
+            return self._set(name, value)
+
+    def _set(self, name: str, value: Any) -> FeatureState:
         feature = self._feature(name)
         if feature.readonly:
             raise ReadOnlyFeature(f"{name} is read-only")
@@ -229,9 +261,30 @@ class MonitorController:
         # already known. Re-reading here would double the cost of every write.
         new = self._state_from_raw(feature, confirmed)
         with self._lock:
+            previous = self._state.get(name)
             self._state[name] = new
+
+        # Monitors commonly keep separate settings per input — measured on a
+        # Samsung Odyssey G9, brightness reads 11 on HDMI and 60 on DisplayPort.
+        # So changing the input invalidates the cached value of everything else.
+        # Re-reading inline would add ~20 s to the response, so the sweep is
+        # handed to the poller instead.
+        if feature.fast_poll and (previous is None or previous.raw != confirmed):
+            self.request_full_refresh()
+
         self._publish({name: new})
         return new
+
+    def request_full_refresh(self) -> None:
+        """Ask the poller to re-read everything at its next opportunity."""
+        self._full_refresh_wanted.set()
+
+    @property
+    def full_refresh_wanted(self) -> bool:
+        return self._full_refresh_wanted.is_set()
+
+    def clear_full_refresh(self) -> None:
+        self._full_refresh_wanted.clear()
 
     def _check_guard(self, feature: Feature, guard: str | None) -> None:
         if guard is None:

@@ -103,6 +103,15 @@ swallowed; a verify-and-retry loop over `getvcp 60` was mandatory.
 > write landed on the first try. The retry loop stays in the code anyway; it costs
 > nothing when the write succeeds.
 
+**Settings are kept per input.** Reading brightness while the monitor displayed HDMI
+returned `11`; the same read while it displayed DisplayPort 2 returned `60`. The
+monitor stores an independent set of values for each input, so **changing the input
+invalidates every other cached value**. `monitorctl` reacts by scheduling a full
+re-read whenever the input source changes.
+
+Worth knowing if you write your own tooling: a cached brightness that looks wrong
+after a switch is not a bug in the read, it is a different setting entirely.
+
 **Never switch to an input without a signal.** This is the most dangerous point, and
 the one that shaped the architecture. As soon as the monitor *displays* an input with
 no signal, its DDC engine wedges: `0x37` still ACKs at the I²C level, but every DDC
