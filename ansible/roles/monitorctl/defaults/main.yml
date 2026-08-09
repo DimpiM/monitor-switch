@@ -43,9 +43,14 @@ monitorctl_log_level: INFO
 # The whole design rests on this machine always producing a video signal: a
 # monitor that displays an input with no signal wedges its DDC engine.
 #
-# Monitors often serve a minimal EDID on an inactive input, which leaves the
-# framebuffer at something like 1024x768. Forcing the mode fixes that. The
-# trailing D is the modern equivalent of hdmi_force_hotplug=1.
+# The trailing D forces the connector on regardless of what the monitor reports,
+# which is the modern equivalent of hdmi_force_hotplug=1 and the part that
+# actually guarantees a signal.
+#
+# The resolution is a request, not a promise: if the monitor serves no EDID on
+# that input — which happens, and varies between boots on the same hardware —
+# the driver rejects the mode and falls back to a default list topping out
+# around 1024x768. A signal still exists, which is all the design needs.
 #
 # This edits the kernel command line and needs a reboot, so it is opt-in.
 monitorctl_force_video: false

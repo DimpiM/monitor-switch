@@ -13,7 +13,7 @@ Raspberry Pi Zero 2 W.
 | ✅ DDC/CI works on the Pi Zero 2 W | `0x37` answers on `/dev/i2c-2`, `ddcutil detect` reports the monitor at VCP 2.1 |
 | ✅ Switching is reliable | 20 of 20 switches landed on the first attempt, ~2.0 s each |
 | ✅ DDC survives while the Pi is the displayed input | Read brightness and usage hours with the monitor showing HDMI |
-| ✅ Forced video mode | 1920×1080 instead of a 1024×768 fallback; `0x37` still answers afterwards |
+| ✅ Forced video output | `D` forces the connector on across reboots — `enabled`, `dpms On`, live framebuffer, guard reporting true every time. The *resolution* is not deterministic; see Known limitations. |
 | ✅ HTTP API and SSE | Switching, concurrent requests, live state push |
 | ✅ Web UI | Driven in a browser against the running service, desktop and phone widths |
 | ✅ Ansible role | First run installs; second run reports `changed=0` |
@@ -28,6 +28,7 @@ Raspberry Pi Zero 2 W.
 | ⬜ **The `probe` calibration command** | Implemented with a commit-or-revert timer, but never run against a monitor that actually needs it. |
 | ⬜ **Behaviour while the monitor sleeps** | Unknown whether DDC answers at all in standby. This is why `0xD6` (power) ships read-only. |
 | ⬜ **Long-run endurance** | The longest continuous run so far is 20 switches. |
+| ⬜ **Survives a Pi reboot** | ✅ actually — service, MQTT and the web UI all came back unattended after a reboot. Listed here only because it was verified once, not repeatedly. |
 
 ## Known limitations
 
@@ -44,6 +45,13 @@ Recover through the OSD or another API call.
 
 **No authentication.** The service is meant for a trusted LAN. It binds to a
 configurable address rather than `0.0.0.0` by default.
+
+**The forced video resolution is a request, not a promise.** `video=…@60D` reliably
+forces the connector *on*, which is what the design depends on. The resolution
+depends on the monitor serving an EDID for that input, and the reference monitor
+did so on one boot and not on the next, unprompted. When it does not, the mode
+falls back to around 1024×768 — a signal still exists, so nothing breaks. Details
+in [hardware-findings.md](hardware-findings.md).
 
 **A toggle costs one extra read.** `POST /api/toggle` reads the current input
 before deciding where to go (~2.7 s). `POST /api/input/<target>` skips that

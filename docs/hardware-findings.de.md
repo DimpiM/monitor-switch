@@ -193,12 +193,36 @@ Ein vollständiger Schaltvorgang mit einer Verify-Lesung liegt bei **~1,7 s**.
 ### Videosignal
 
 Der DRM-Modus listete zunächst nur bis 1024×768 — der Monitor liefert über HDMI im
-inaktiven Zustand offenbar nur eine Minimal-EDID. Mit
-`video=HDMI-A-1:1920x1080@60D` in `/boot/firmware/cmdline.txt` steht der Modus fest
-bei 1920×1080, unabhängig von der Erkennung. Das angehängte `D` ist das Gegenstück
-zum früheren `hdmi_force_hotplug=1`.
+inaktiven Zustand offenbar nur eine Minimal-EDID. `video=HDMI-A-1:1920x1080@60D` in
+`/boot/firmware/cmdline.txt` behob das: nach dem Reboot stand der Framebuffer auf
+1920×1080, `0x37` antwortete weiterhin.
 
-Nach dem Reboot mit erzwungenem Modus: `0x37` weiterhin da, `getvcp 60` unverändert.
+**Die Auflösung ist aber nicht deterministisch — und das wiegt weniger schwer, als
+es aussieht.** Ein späterer Reboot kam mit derselben Kernel-Kommandozeile auf
+1024×768 hoch. Der Grund steht im Log:
+
+```
+[drm] forcing HDMI-A-1 connector on
+[drm] User-defined mode not supported: "1920x1080": 60 148500 …
+```
+
+und `/sys/class/drm/card0-HDMI-A-1/edid` war **0 Bytes** — der Monitor lieferte bei
+diesem Boot gar keine EDID über HDMI. Ohne sie nimmt der Treiber den gewünschten
+Modus nicht an und fällt auf eine Standardliste bis 1024×768 zurück.
+
+Verlässlich ist der Teil, auf den es ankommt: **das `D` erzwingt den Connector
+unabhängig von der EDID**, ein Signal liegt also immer an. Beide Boots hatten
+`enabled`, `dpms On`, einen aktiven Framebuffer und einen `local_video`-Guard, der
+`true` meldet. Unterschiedlich war allein die Pixelzahl — und für ein Gerät, dessen
+Bild nur existiert, damit der Monitor nie einen toten Eingang zeigt, ist das
+Kosmetik.
+
+Ob der Monitor über HDMI eine EDID liefert, hängt offenbar von Zuständen ab, die wir
+nicht steuern — derselbe Monitor tat es einmal und einmal nicht, bei gleicher
+gewählter Quelle. Wer eine feste Auflösung braucht, kann per
+`drm.edid_firmware=HDMI-A-1:edid/….bin` eine synthetische EDID unterschieben; aktuelle
+Kernel liefern allerdings keine eingebauten EDID-Blobs mehr, die Datei muss man selbst
+bereitstellen. Hier nicht erprobt.
 
 ## Capabilities-String
 

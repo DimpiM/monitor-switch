@@ -191,12 +191,34 @@ A complete switch including one verify read takes **~1.7 s**.
 ### Video signal
 
 The DRM mode list initially topped out at 1024×768 — over HDMI the monitor evidently
-serves only a minimal EDID while that input is inactive. With
-`video=HDMI-A-1:1920x1080@60D` in `/boot/firmware/cmdline.txt` the mode is fixed at
-1920×1080 regardless of detection. The trailing `D` is the modern counterpart to the
-old `hdmi_force_hotplug=1`.
+serves only a minimal EDID while that input is inactive. Adding
+`video=HDMI-A-1:1920x1080@60D` to `/boot/firmware/cmdline.txt` fixed that, and after
+the reboot the framebuffer was 1920×1080 with `0x37` still answering.
 
-After rebooting with the forced mode: `0x37` still present, `getvcp 60` unchanged.
+**But the resolution is not deterministic, and that matters less than it looks.** A
+later reboot came up at 1024×768 with the same kernel command line. The reason is in
+the log:
+
+```
+[drm] forcing HDMI-A-1 connector on
+[drm] User-defined mode not supported: "1920x1080": 60 148500 …
+```
+
+and `/sys/class/drm/card0-HDMI-A-1/edid` was **0 bytes** — that boot, the monitor
+served no EDID at all over HDMI. Without one the driver will not accept the requested
+mode and falls back to a default list topping out at 1024×768.
+
+What *is* reliable is the part that matters: **`D` forces the connector on regardless
+of EDID**, so a signal always exists. Both boots had `enabled`, `dpms On`, a live
+framebuffer, and the service's `local_video` guard returning true. Only the pixel
+count differed, and for a device whose display exists solely so the monitor never
+shows a dead input, that is cosmetic.
+
+Whether the monitor serves an EDID over HDMI appears to depend on state we do not
+control — the same monitor did and did not, across two reboots, with the same input
+selected. Anyone who needs a fixed resolution can supply a synthetic EDID with
+`drm.edid_firmware=HDMI-A-1:edid/…bin`; note that current kernels no longer ship
+built-in EDID blobs, so you have to provide the file yourself. Untested here.
 
 ## Capabilities string
 

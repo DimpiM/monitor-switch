@@ -52,6 +52,34 @@ uses to adapt — which is enough to make a marginal capabilities read fail. The
 shipped systemd unit handles this with `CacheDirectory=`; a hand-rolled unit
 with `ProtectSystem=strict` and no writable cache will hit it.
 
+## The framebuffer came up at 1024×768 instead of the mode I asked for
+
+Expected, and harmless. Check the kernel log:
+
+```bash
+sudo dmesg | grep -iE 'forcing|User-defined mode'
+cat /sys/class/drm/card*-HDMI-A-1/edid | wc -c
+```
+
+If you see `forcing HDMI-A-1 connector on` together with `User-defined mode not
+supported`, and the EDID is 0 bytes, the monitor served no EDID on that input
+this boot. Without one the driver refuses the requested mode and falls back.
+
+What matters is unaffected: the connector is forced on, so a signal exists. Check
+that rather than the resolution:
+
+```bash
+curl -s http://127.0.0.1:8765/api/display | grep local_video
+```
+
+`true` means this machine is driving video and the guard will allow switching to
+its own input. The pixel count is cosmetic for a device whose display exists only
+so the monitor never shows a dead input.
+
+If you genuinely need a fixed mode, supply a synthetic EDID with
+`drm.edid_firmware=HDMI-A-1:edid/<file>.bin`. Current kernels no longer ship
+built-in EDID blobs, so you must provide the file under `/lib/firmware/edid/`.
+
 ## The monitor stopped answering entirely
 
 This is the wedge. It happens when the monitor *displays* an input with no
