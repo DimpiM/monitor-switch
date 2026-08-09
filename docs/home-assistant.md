@@ -25,21 +25,36 @@ a stale value on the dashboard.
 
 ## Credentials
 
-The Mosquitto add-on authenticates MQTT clients against **Home Assistant user
-accounts**. So the clean path is a dedicated account:
+The Mosquitto add-on has its own `logins` list, and that is the cleanest place
+for a device credential — it is independent of Home Assistant user accounts, so
+nothing about your own login is involved, and it can be revoked on its own.
 
-1. Settings → People → Add person
-2. Give it a name such as `monitorswitch`, enable *Allow person to login*
-3. Turn on *Local access only* — this account never needs to reach the internet
-4. Use that username and password below
+**Settings → Add-ons → Mosquitto broker → Configuration:**
 
-A dedicated account can be revoked on its own, and the broker log tells you
-which device did what. Reusing Home Assistant's own broker credentials works
-too, but then the Pi and Home Assistant are indistinguishable to the broker and
-share a fate if either is compromised.
+```yaml
+logins:
+  - username: monitorswitch
+    password: <something long and random>
+```
 
-> The add-on's own `logins:` option is an alternative, but changing it requires
-> the Supervisor API — which the SSH add-on blocks while protection mode is on.
+Save, then **restart the add-on**. That briefly disconnects every MQTT client;
+Home Assistant's own integration reconnects by itself.
+
+> Generate the password rather than inventing one:
+> ```bash
+> python3 -c "import secrets,string; a=string.ascii_letters+string.digits; print(''.join(secrets.choice(a) for _ in range(32)))"
+> ```
+
+### Alternatives
+
+The add-on also authenticates against **Home Assistant user accounts**, so a
+dedicated person created under Settings → People works too — give it *Local
+access only*. That is a reasonable choice if you would rather manage device
+access alongside your other accounts.
+
+What is not a good idea is reusing Home Assistant's own broker credentials: the
+Pi and Home Assistant then look identical to the broker, cannot be revoked
+separately, and share a fate if either is compromised.
 
 ## Configuration
 

@@ -1,6 +1,6 @@
 # Project status
 
-Last updated **2026-08-08**.
+Last updated **2026-08-09**.
 
 This file is honest about what has been verified on real hardware and what has
 not. Everything below marked ✅ was exercised against a Samsung Odyssey G9 on a
@@ -18,12 +18,12 @@ Raspberry Pi Zero 2 W.
 | ✅ Web UI | Driven in a browser against the running service, desktop and phone widths |
 | ✅ Ansible role | First run installs; second run reports `changed=0` |
 | ✅ Unprivileged operation | Service runs as its own user, in group `i2c`, no root |
+| ✅ MQTT and Home Assistant | 21 entities announced and registered; a command sent over MQTT reached the monitor and came back; stopping the service flipped availability to `offline` |
 
 ## Not verified yet
 
 | | Why it matters |
 |---|---|
-| ⬜ **MQTT bridge** | Written and documented, but never connected to a broker. Credentials are an open question — see [home-assistant.md](home-assistant.md). |
 | ⬜ **Any monitor other than the reference one** | The `generic` profile and auto-detection are exercised only by unit tests against recorded output. |
 | ⬜ **The `probe` calibration command** | Implemented with a commit-or-revert timer, but never run against a monitor that actually needs it. |
 | ⬜ **Behaviour while the monitor sleeps** | Unknown whether DDC answers at all in standby. This is why `0xD6` (power) ships read-only. |
@@ -51,7 +51,9 @@ before deciding where to go (~2.7 s). `POST /api/input/<target>` skips that
 
 ## Next
 
-- Connect the MQTT bridge to a broker and verify the entities in Home Assistant
+Nothing is outstanding on the reference hardware. What would move the project
+forward now is coverage of monitors it has never seen — see
+[profiles.md](profiles.md).
 
 ### Measured and dropped: `log2ram`
 

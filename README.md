@@ -16,11 +16,10 @@ and exposes every control the monitor offers over HTTP, a web UI, and Home Assis
 ---
 
 > **Status: usable, not yet released.**
-> The service, web UI and Ansible role work and are verified on real hardware — a
-> Samsung Odyssey G9 driven by a Raspberry Pi Zero 2 W. The MQTT bridge is written
-> but has not been connected to a broker yet, and no monitor other than the
-> reference one has been tried. [`docs/status.md`](docs/status.md) is explicit
-> about what is proven and what is not.
+> Everything works and is verified on real hardware — a Samsung Odyssey G9 driven
+> by a Raspberry Pi Zero 2 W, including the Home Assistant integration. What has
+> not been tried is any *other* monitor. [`docs/status.md`](docs/status.md) is
+> explicit about what is proven and what is not.
 
 ## The problem
 

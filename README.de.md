@@ -16,10 +16,9 @@ alles, was der Monitor kann, über HTTP, eine Weboberfläche und Home Assistant 
 ---
 
 > **Status: benutzbar, noch nicht veröffentlicht.**
-> Dienst, Weboberfläche und Ansible-Rolle laufen und sind auf echter Hardware
-> verifiziert — ein Samsung Odyssey G9 an einem Raspberry Pi Zero 2 W. Die
-> MQTT-Brücke ist geschrieben, aber noch an keinem Broker erprobt, und außer dem
-> Referenzgerät wurde kein Monitor getestet. [`docs/status.md`](docs/status.md)
+> Alles läuft und ist auf echter Hardware verifiziert — ein Samsung Odyssey G9 an
+> einem Raspberry Pi Zero 2 W, die Home-Assistant-Anbindung eingeschlossen. Nicht
+> erprobt ist bisher jeder *andere* Monitor. [`docs/status.md`](docs/status.md)
 > sagt genau, was belegt ist und was nicht.
 
 ## Das Problem
