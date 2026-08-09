@@ -105,7 +105,10 @@ class MQTTBridge:
             log.warning("MQTT command for unknown feature %r", name)
             return
         try:
-            value = int(payload) if feature.type == CONTINUOUS else payload
+            if feature.type == CONTINUOUS:
+                value = int(payload)
+            else:
+                value = self._option_id(feature, payload)
             self.controller.set(name, value)
         except Exception as exc:
             # Home Assistant has no channel to show this, so the log is the only
@@ -117,6 +120,39 @@ class MQTTBridge:
     def _on_state_change(self, changed: dict[str, FeatureState]) -> None:
         for name, state in changed.items():
             self._publish_state(name, state)
+
+    # ------------------------------------------------------- option naming
+
+    # Home Assistant shows a select's options verbatim and sends the chosen one
+    # straight back, so the list has to be human-readable — "dp1" in a dropdown
+    # helps nobody. Labels are used unless two of them collide, in which case
+    # the whole feature falls back to ids rather than becoming ambiguous.
+    @staticmethod
+    def _use_labels(feature: Feature) -> bool:
+        labels = [o.label or o.id for o in feature.options]
+        return len(set(labels)) == len(labels)
+
+    @classmethod
+    def _option_names(cls, feature: Feature) -> list[str]:
+        if cls._use_labels(feature):
+            return [o.label or o.id for o in feature.options]
+        return [o.id for o in feature.options]
+
+    @classmethod
+    def _option_name(cls, feature: Feature, option_id: str | None) -> str | None:
+        option = feature.option_by_id(option_id) if option_id else None
+        if option is None:
+            return option_id
+        return (option.label or option.id) if cls._use_labels(feature) else option.id
+
+    @staticmethod
+    def _option_id(feature: Feature, payload: str) -> str:
+        """Accept either the label shown in Home Assistant or the raw id."""
+        for option in feature.options:
+            if payload in ((option.label or option.id), option.id):
+                return option.id
+        # Let the controller reject it, so the error message lists valid values.
+        return payload
 
     # -------------------------------------------------------------- topics
 
@@ -175,7 +211,7 @@ class MQTTBridge:
         payload["command_topic"] = self._command_topic(feature.name)
 
         if feature.type == SELECT:
-            payload["options"] = [o.id for o in feature.options]
+            payload["options"] = self._option_names(feature)
             return "select", payload
 
         payload.update(
@@ -211,6 +247,11 @@ class MQTTBridge:
             value = "unknown"
         else:
             value = item.get("value")
+            feature = self.controller.features.get(name)
+            # The state has to match one of the announced options exactly, or
+            # Home Assistant shows the entity as having an invalid value.
+            if feature is not None and feature.type == SELECT and value is not None:
+                value = self._option_name(feature, str(value))
             if value is None:
                 value = "unknown"
         with self._lock:

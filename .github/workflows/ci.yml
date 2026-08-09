@@ -143,4 +143,5 @@ jobs:
           scan '192\.168\.[0-9]+\.[0-9]+' 'RFC1918 address committed'
           scan '10\.[0-9]+\.[0-9]+\.[0-9]+' 'private 10/8 address committed'
           scan '\bH4ZR[0-9A-Z]+' 'monitor serial number committed'
+          scan 'dimperl\.(com|home)' 'private domain committed'
           exit $FAIL

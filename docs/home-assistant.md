@@ -94,8 +94,46 @@ monitorctl/<node_id>/<feature>/set       write a value here
 `<node_id>` is `monitorctl` unless you change `monitorctl_mqtt_node_id`. Set it
 per device if you run more than one.
 
-Values on the wire are the **option ids** from the profile (`dp1`, `dp2`,
-`hdmi`), not the labels — so automations keep working if you rename a label.
+### Which values travel on the wire
+
+For selects, the **labels** from the profile — `Windows`, `Linux`, `7500 K` —
+not the internal ids. Home Assistant shows a select's options verbatim and sends
+the chosen one straight back, so `dp1` in a dropdown would help nobody.
+
+Two consequences worth knowing:
+
+- **Renaming a label changes what automations must send.** The command topic
+  also accepts the raw id, so `dp2` keeps working alongside `Linux`; only the
+  dropdown and the published state follow the label.
+- **If two options share a label**, that feature falls back to ids rather than
+  becoming ambiguous.
+
+The HTTP API is unaffected and always speaks ids.
+
+### Naming the inputs
+
+`dp1` and `dp2` describe the cable, not the machine. Put the names you actually
+use in `monitorctl_feature_overrides` — the local layer, not the shipped
+profile, because "Windows" is a property of your desk rather than of the
+monitor:
+
+```yaml
+monitorctl_feature_overrides:
+  input_source:
+    options:
+      - { id: dp1,  label: Windows, write: 0x0f, read: 0x03 }
+      - { id: dp2,  label: Linux,   write: 0x10, read: 0x04 }
+      - { id: hdmi, label: Pi,      write: 0x11, read: 0x01, guard: local_video }
+```
+
+Copy `write` and `read` from the profile you are overriding, or the values are
+lost.
+
+## Dashboard cards
+
+Ready-made examples, including a two-button variant for when a third input
+exists but has no place on the dashboard:
+[`lovelace-example.yaml`](lovelace-example.yaml).
 
 ## Automations
 

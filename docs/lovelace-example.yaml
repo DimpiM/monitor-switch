@@ -1,0 +1,78 @@
+# Example Lovelace cards for the input source select.
+#
+# Entity ids follow from the MQTT device name. With
+# monitorctl_mqtt_device_name: "Odyssey G9" the select becomes
+# select.odyssey_g9_input_source — check yours under Settings → Devices.
+#
+# The option names are the labels from your profile (or from
+# monitorctl_feature_overrides), not the internal ids. That is deliberate:
+# Home Assistant shows a select's options verbatim, so they have to read like
+# something a person would say.
+
+# ---------------------------------------------------------------------------
+# 1. Simplest: one native tile, no custom cards needed.
+#    Shows every input the profile knows, with the active one highlighted.
+# ---------------------------------------------------------------------------
+type: tile
+entity: select.odyssey_g9_input_source
+name: Bildquelle
+icon: mdi:monitor-shimmer
+features:
+  - type: select-options
+
+# ---------------------------------------------------------------------------
+# 2. Exactly two targets, active one highlighted. Needs Mushroom (HACS).
+#    Use this when a third input exists but has no place on the dashboard.
+# ---------------------------------------------------------------------------
+type: horizontal-stack
+cards:
+  - type: custom:mushroom-template-card
+    primary: Linux
+    secondary: >-
+      {{ 'aktiv' if is_state('select.odyssey_g9_input_source', 'Linux')
+         else 'umschalten' }}
+    icon: mdi:linux
+    icon_color: >-
+      {% set s = states('select.odyssey_g9_input_source') %}
+      {% if s == 'Linux' %}green
+      {% elif s in ['unavailable', 'unknown'] %}red
+      {% else %}disabled{% endif %}
+    tap_action:
+      action: perform-action
+      perform_action: select.select_option
+      target:
+        entity_id: select.odyssey_g9_input_source
+      data:
+        option: Linux
+  - type: custom:mushroom-template-card
+    primary: Windows
+    secondary: >-
+      {{ 'aktiv' if is_state('select.odyssey_g9_input_source', 'Windows')
+         else 'umschalten' }}
+    icon: mdi:microsoft-windows
+    icon_color: >-
+      {% set s = states('select.odyssey_g9_input_source') %}
+      {% if s == 'Windows' %}blue
+      {% elif s in ['unavailable', 'unknown'] %}red
+      {% else %}disabled{% endif %}
+    tap_action:
+      action: perform-action
+      perform_action: select.select_option
+      target:
+        entity_id: select.odyssey_g9_input_source
+      data:
+        option: Windows
+
+# ---------------------------------------------------------------------------
+# Notes
+#
+# A switch takes roughly two seconds — the service waits for the monitor to
+# confirm before answering. The tile updates when the new state is published,
+# so a brief lag after tapping is expected, not a stuck card.
+#
+# Both cards go red on `unavailable`. That is the last will firing: the service
+# is down or the Pi is off. Worth keeping visible rather than styling away.
+#
+# Switching to a machine that is powered off leaves a black screen. Nothing can
+# detect that in advance; tap the other option to come back.
+# ---------------------------------------------------------------------------
