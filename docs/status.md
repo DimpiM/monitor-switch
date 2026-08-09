@@ -52,8 +52,25 @@ before deciding where to go (~2.7 s). `POST /api/input/<target>` skips that
 ## Next
 
 - Connect the MQTT bridge to a broker and verify the entities in Home Assistant
-- CI that rebuilds the frontend and fails if the committed build has drifted
-- `log2ram`, since this is a permanently-powered machine on an SD card
+
+### Measured and dropped: `log2ram`
+
+An always-on machine on an SD card invites moving `/var/log` to RAM. Measured on
+the running system instead of assumed:
+
+| | |
+|---|---|
+| Journal growth | **0 bytes** over 60 s, 8.1 MB total |
+| Whole-disk writes | ~264 KiB over 120 s ≈ **185 MiB/day** |
+| `noatime` | already set on `/` |
+
+That is roughly 67 GiB a year, which no reasonable card minds. And `log2ram`
+only redirects `/var/log` — precisely the part already writing nothing, because
+the service asks `ddcutil` not to log to syslog (`--syslog NEVER`). Adding a
+third-party apt repository to fix a non-problem is not worth it.
+
+Worth revisiting if the log ever gets chatty again, or if you add something that
+writes continuously.
 
 `clients/monitor-switch.sh` wraps the API for scripts and terminals. Binding it
 to a hotkey is a one-liner in any desktop environment, but no ready-made hotkey
