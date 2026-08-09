@@ -52,9 +52,12 @@ before deciding where to go (~2.7 s). `POST /api/input/<target>` skips that
 ## Next
 
 - Connect the MQTT bridge to a broker and verify the entities in Home Assistant
-- Hotkey clients for KDE and Windows
 - CI that rebuilds the frontend and fails if the committed build has drifted
 - `log2ram`, since this is a permanently-powered machine on an SD card
+
+`clients/monitor-switch.sh` wraps the API for scripts and terminals. Binding it
+to a hotkey is a one-liner in any desktop environment, but no ready-made hotkey
+integration ships here — the web UI covers the same ground without one.
 
 ## Contributing what is missing
 

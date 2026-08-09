@@ -1,0 +1,146 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  service:
+    name: Service
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      # The target installs these from apt rather than pip, so there is no
+      # requirements file to install from. Keep this list in step with
+      # monitorctl_packages in the Ansible role.
+      - name: Install dependencies
+        run: pip install pytest pyyaml flask waitress paho-mqtt ruff
+
+      - name: Lint
+        working-directory: service
+        run: ruff check .
+
+      - name: Test
+        working-directory: service
+        run: python -m pytest
+
+      - name: Import every module
+        working-directory: service
+        run: |
+          python -c "
+          import importlib
+          for m in ['ddc','features','profiles','controller','config','events','app','api','cli','mqtt']:
+              importlib.import_module('monitorctl.' + m)
+          print('all modules import cleanly')
+          "
+
+      - name: Validate the shipped profiles
+        working-directory: service
+        run: |
+          python -c "
+          import sys
+          from monitorctl.profiles import load_profiles
+          profiles = load_profiles()
+          assert profiles, 'no profiles found'
+          for p in profiles:
+              print(f'{p.name}: {len(p.features)} features')
+              for name, spec in p.features.items():
+                  if spec in (False, None):
+                      continue
+                  for opt in spec.get('options', []):
+                      assert 'id' in opt and 'write' in opt, f'{p.name}/{name}: {opt}'
+          "
+
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build
+        working-directory: frontend
+        run: npm run build
+
+      # The build output is committed so that installing needs no Node
+      # toolchain. That only stays honest if the two cannot drift apart.
+      - name: Check the committed build is current
+        run: |
+          if ! git diff --quiet -- service/monitorctl/web; then
+            echo "::error::The committed frontend build is out of date."
+            echo "Run 'npm run build' in frontend/ and commit service/monitorctl/web/."
+            git diff --stat -- service/monitorctl/web
+            exit 1
+          fi
+          echo "committed build matches the sources"
+
+  ansible:
+    name: Ansible
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      # ansible-core only: the role deliberately avoids collections so nobody
+      # has to install them before using it.
+      - name: Install
+        run: pip install ansible-core ansible-lint
+
+      - name: Syntax check
+        working-directory: ansible
+        run: ansible-playbook --syntax-check -i inventory.example.ini site.yml
+
+      - name: Lint
+        working-directory: ansible
+        run: ansible-lint site.yml roles/ || true
+
+  secrets:
+    name: No personal data
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # This repository grew out of one person's home setup. These patterns are
+      # the things that were scrubbed on the way out; the check exists so they
+      # cannot creep back in through a careless paste.
+      - name: Scan for private addresses and identifiers
+        run: |
+          set +e
+          FAIL=0
+          scan() {
+            hits=$(grep -rInE "$1" --include='*.md' --include='*.py' --include='*.yml' \
+                   --include='*.yaml' --include='*.js' --include='*.svelte' --include='*.j2' \
+                   --include='*.ini' --include='*.sh' . \
+                   | grep -vE '192\.0\.2\.|example|EXAMPLE' )
+            if [ -n "$hits" ]; then
+              echo "::error::$2"
+              echo "$hits"
+              FAIL=1
+            fi
+          }
+          # 192.0.2.0/24 is the documentation range and is allowed.
+          scan '192\.168\.[0-9]+\.[0-9]+' 'RFC1918 address committed'
+          scan '10\.[0-9]+\.[0-9]+\.[0-9]+' 'private 10/8 address committed'
+          scan '\bH4ZR[0-9A-Z]+' 'monitor serial number committed'
+          exit $FAIL

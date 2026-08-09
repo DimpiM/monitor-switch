@@ -60,7 +60,7 @@ class Config:
     log_level: str = "INFO"
 
     @classmethod
-    def load(cls, path: str | None = None) -> "Config":
+    def load(cls, path: str | None = None) -> Config:
         path = path or os.environ.get("MONITORCTL_CONFIG", DEFAULT_CONFIG_PATH)
         data: dict = {}
         if os.path.exists(path):

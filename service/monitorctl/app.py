@@ -9,7 +9,7 @@ from dataclasses import dataclass
 
 from .config import Config
 from .controller import MonitorController
-from .ddc import DDC, DDCError, DDCSettings
+from .ddc import DDC, DDCError
 from .events import EventBus
 from .profiles import build_feature_set, load_profiles, select_profile
 

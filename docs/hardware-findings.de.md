@@ -122,6 +122,18 @@ jede DDC-Transaktion scheitert mit „DDC communication failed". Zweimal reprodu
 Eingang geschaltet wird, prüft der Dienst über `/sys/class/drm/`, dass sein Connector
 `enabled` und `dpms On` ist.
 
+> **Eine Gegenbeobachtung.** Der Monitor wurde auf einen DisplayPort-Eingang
+> geschaltet, dessen Rechner ausgeschaltet war, blieb dort rund zwei Sekunden und
+> wurde zurückgeschaltet. DDC arbeitete durchgehend weiter, die Lesungen danach waren
+> sauber. Der Wedge tritt also nicht sofort ein, und kurze Berührung ist überstehbar —
+> jedenfalls an diesem Monitor, in diesem einen Fall. Die ursprünglichen Wedges lagen
+> beide auf dem HDMI-Steuerkanal und dauerten länger an.
+>
+> Das geschah versehentlich, nicht geplant, und wurde nicht wiederholt: herauszufinden,
+> wo die Grenze liegt, hieße einen Zustand absichtlich herbeizuführen, aus dem nur das
+> OSD wieder herausführt. Der Guard bleibt die Regel, das hier ist eine Fußnote und
+> kein Freibrief.
+
 **Wiederbelebung nach einem Wedge:** einen Link-Reset auf dem HDMI-Anschluss auslösen,
 also HPD neu aussenden. Unter KDE Wayland:
 

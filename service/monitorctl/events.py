@@ -12,7 +12,8 @@ import json
 import logging
 import queue
 import threading
-from typing import Any, Iterator
+from collections.abc import Iterator
+from typing import Any
 
 log = logging.getLogger(__name__)
 

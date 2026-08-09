@@ -121,6 +121,17 @@ transaction fails with "DDC communication failed". Reproduced twice.
 own input, the service checks via `/sys/class/drm/` that its connector is `enabled`
 and `dpms On`.
 
+> **One counter-observation.** The monitor was switched to a DisplayPort input whose
+> machine was powered off, left there for roughly two seconds, and switched back. DDC
+> kept working throughout, and reads afterwards were clean. So the wedge is not
+> instant, and brief exposure is survivable — at least on this monitor, in this one
+> instance. The original wedges were both on the HDMI control channel and lasted
+> longer.
+>
+> This was accidental rather than designed, and it has not been repeated: finding
+> where the boundary lies means deliberately provoking a state that needs the OSD to
+> escape. Treat the guard as the rule and this as a footnote, not a licence.
+
 **Recovering from a wedge:** trigger a link reset on the HDMI connector, i.e. re-assert
 HPD. Under KDE Wayland:
 

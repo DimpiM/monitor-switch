@@ -16,9 +16,10 @@ from __future__ import annotations
 import logging
 import threading
 import time
+from collections.abc import Callable
 from contextlib import contextmanager
 from dataclasses import asdict, dataclass
-from typing import Any, Callable
+from typing import Any
 
 from .ddc import DDC, DDCError
 from .features import CONTINUOUS, SELECT, Feature, FeatureSet

@@ -106,7 +106,8 @@ def _dispatch(args, runtime, controller: MonitorController) -> int:
         print(f"Connector    : {info.connector}")
         print(f"I2C bus      : {runtime.ddc.bus}")
         print(f"Profile      : {runtime.profile_name}")
-        print(f"Local video  : {'active' if runtime.ddc.local_video_active() else 'INACTIVE'}")
+        local = "active" if runtime.ddc.local_video_active() else "INACTIVE"
+        print(f"Local video  : {local}")
         return 0
 
     if args.command == "features":
