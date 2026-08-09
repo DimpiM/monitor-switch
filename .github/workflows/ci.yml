@@ -142,6 +142,32 @@ jobs:
           # 192.0.2.0/24 is the documentation range and is allowed.
           scan '192\.168\.[0-9]+\.[0-9]+' 'RFC1918 address committed'
           scan '10\.[0-9]+\.[0-9]+\.[0-9]+' 'private 10/8 address committed'
-          scan '\bH4ZR[0-9A-Z]+' 'monitor serial number committed'
-          scan 'dimperl\.(com|home)' 'private domain committed'
+          scan '172\.(1[6-9]|2[0-9]|3[01])\.[0-9]+\.[0-9]+' 'private 172.16/12 address committed'
+          scan '([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}' 'MAC address committed'
           exit $FAIL
+
+      # Identifiers specific to whoever runs this fork — a domain, a device
+      # serial — cannot be written here: the pattern would publish the very
+      # thing it guards. Put them in a repository secret named
+      # PRIVATE_PATTERNS, one extended-regex alternation, e.g.
+      #   example\.com|SERIAL[0-9A-Z]+
+      # The step is skipped when the secret is unset, so forks are unaffected.
+      - name: Scan for owner-specific identifiers
+        env:
+          PRIVATE_PATTERNS: ${{ secrets.PRIVATE_PATTERNS }}
+        run: |
+          if [ -z "${PRIVATE_PATTERNS:-}" ]; then
+            echo "PRIVATE_PATTERNS not set — skipping."
+            exit 0
+          fi
+          hits=$(grep -rInE "$PRIVATE_PATTERNS" \
+                 --include='*.md' --include='*.py' --include='*.yml' \
+                 --include='*.yaml' --include='*.js' --include='*.svelte' \
+                 --include='*.j2' --include='*.ini' --include='*.sh' . || true)
+          if [ -n "$hits" ]; then
+            # Print only where, never what, or the log leaks it instead.
+            echo "::error::An owner-specific identifier was committed."
+            echo "$hits" | cut -d: -f1,2 | sort -u
+            exit 1
+          fi
+          echo "no owner-specific identifiers found"
